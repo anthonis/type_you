@@ -41,7 +41,7 @@ import numpy as np
 X_diabetes=pd.read_csv('X_diabetes.csv',index_col=[0])
 to_add=[[a,b,c,d,e,f2,g,h,i,j,k]]
 X_diabetes2=X_diabetes.append(pd.DataFrame(to_add,columns=['triglycerides_mg_dl','HDL_cholesterol_mg_dl','total_cholesterol_mg_dl','platelet_count_1000cells_ul','white_blood_cell_count_1000cells_ul','red_blood_cell_count_millioncells_ul','60secpulse','systolic_mm_hg','diastolic_mm_hg','age_yr','age_onset_diabetes']),ignore_index=True)
-st.write(X_diabetes2)
+
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 X_normalized=StandardScaler().fit_transform(X_diabetes2)
