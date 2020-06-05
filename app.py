@@ -36,8 +36,7 @@ k=st.number_input('16-120',key='k')
 
 import pandas as pd
 import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
+
 
 X_diabetes=pd.read_csv('X_diabetes.csv',index_col=[0])
 to_add=[[a,b,c,d,e,f2,g,h,i,j,k]]
