@@ -9,7 +9,7 @@ dependencies:
 - numpy
 - scipy
 - scikit-learn
-- sklearn
+- sklearn.preprocessing
 - pip
 - pip:
   - streamlit
