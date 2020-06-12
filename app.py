@@ -1,67 +1,113 @@
 import streamlit as st
-
-from PIL import Image
-titleimage=Image.open('type.jpg')
-st.image(image=titleimage)
-st.title("Tell us about your patient")
-st.header("(These features are correlated with A1C score)")
-
-st.header("Blood work")
-st.subheader("Triglycerides (mg/dl)")
-a=st.number_input('40-500',key='a')
-st.subheader("HDL cholesterol (mg/dl)")
-b=st.number_input('20-125',key='b')
-st.subheader("Total cholesterol (mg/dl)")
-c=st.number_input('75-370',key='c')
-st.subheader("Platelet count (1000 cells/ul)")
-d=st.number_input('50-600',key='d')
-st.subheader("White blood cell count (1000 cells/ul)")
-e=st.number_input('3.0-18.0',key='e')
-st.subheader("Red blood cell count (million cells/ul)")
-f2=st.number_input('2.9-6.8',key='f2')
-
-st.header("Appointment measurements")
-st.subheader("60 second pulse")
-g=st.number_input('40-150',key='g')
-st.subheader("Systolic BP (mm/hg)")
-h=st.number_input('80-200',key='h')
-st.subheader("Diastolic BP (mm/hg)")
-i=st.number_input('35-120',key='i')
-
-st.header("Appointment questions")
-st.subheader("Current age (years)")
-j=st.number_input('18-120',key='j')
-st.subheader("Age of onset of diabetes (years)")
-k=st.number_input('16-120',key='k')
-
 import pandas as pd
 import numpy as np
 
-
-X_diabetes=pd.read_csv('X_diabetes.csv',index_col=[0])
-to_add=[[a,b,c,d,e,f2,g,h,i,j,k]]
-X_diabetes2=X_diabetes.append(pd.DataFrame(to_add,columns=['triglycerides_mg_dl','HDL_cholesterol_mg_dl','total_cholesterol_mg_dl','platelet_count_1000cells_ul','white_blood_cell_count_1000cells_ul','red_blood_cell_count_millioncells_ul','60secpulse','systolic_mm_hg','diastolic_mm_hg','age_yr','age_onset_diabetes']),ignore_index=True)
-
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans
-X_normalized=StandardScaler().fit_transform(X_diabetes2)
-kmeans = KMeans(n_clusters = 3, random_state = 0)
-kmeans.fit(X_normalized)
-
-cluster_map=pd.DataFrame()
-cluster_map['data_index']=X_diabetes2.index.values
-cluster_map['cluster']=kmeans.labels_
-
 from PIL import Image
-cluster1image=Image.open('cluster1.png')
-cluster2image=Image.open('cluster2.png')
-cluster3image=Image.open('cluster3.png')
+titleimage=Image.open('type.jpg')
+green=Image.open('green.png')
+amber=Image.open('amber.png')
+red=Image.open('red.png')
 
+st.image(image=titleimage)
+st.title("Helping physicians find the best treatment for patients with type 2 diabetes")
+patient1=pd.read_csv('patient1.csv',index_col=[0])
+patient2=pd.read_csv('patient2.csv',index_col=[0])
+patient3=pd.read_csv('patient3.csv',index_col=[0])
+patient4=pd.read_csv('patient4.csv',index_col=[0])
+patient5=pd.read_csv('patient5.csv',index_col=[0])
 
-if st.button('Find treatments!'):
-	if cluster_map.loc[cluster_map.index[-1], 'cluster'] == 0:
-    		st.image(image=cluster1image)
-	elif cluster_map.loc[cluster_map.index[-1], 'cluster'] == 1:
-    		st.image(image=cluster2image)
-	else:
-    		st.image(image=cluster3image)
+patient=st.selectbox('Select patient EMR data',('Patient 1','Patient 2','Patient 3'))
+dataframe=pd.read_csv('dataframe_jun11_2.csv',index_col=0)
+bins=[0,5.7,6.5,np.inf]
+names=['green','amber','red']
+dataframe['last_A1C_stoplight']=pd.cut(dataframe['last_A1C'],bins,labels=names)
+
+X_rf = dataframe.drop(['SEQN','last_A1C','year','last_A1C_stoplight'],1)  
+y_rf = dataframe['last_A1C_stoplight']
+from sklearn.model_selection import train_test_split
+X_rf_train, X_rf_test, y_rf_train, y_rf_test = train_test_split(X_rf, y_rf, test_size=.25,random_state = 0)
+
+from sklearn.ensemble import RandomForestClassifier
+clf_rf = RandomForestClassifier(n_estimators=20,class_weight='balanced',random_state = 0)
+clf_rf.fit(X_rf_train, y_rf_train)
+
+if patient=='Patient 1':
+	st.write(patient1)
+	st.write("This patient's A1C is currently in the red zone")
+	st.image(image=red)
+if patient=='Patient 2':
+	st.write(patient2)
+	st.write("This patient's A1C is currently in the red zone")
+	st.image(image=red)
+if patient=='Patient 3':
+	st.write(patient3)
+	st.write("This patient's A1C is currently in the red zone")
+	st.image(image=red)
+
+if st.button("Find out how certain interventions are predicted to affect this patient's A1C"):
+	if patient=='Patient 1':
+		st.subheader('Antidiabetic medications')
+		st.text('predicted score with insulin: 6.5+') 
+		st.text('predicted score with alpha-glucosidase inhibitor: 6.5+')
+		st.text('predicted score with biguanide: 6.5+')
+		st.text('predicted score with dopamine agonist: 6.5+')
+		st.text('predicted score with DPP-4 inhibitor: 6.5+')
+		st.text('predicted score with DPP-4 inhibitor; biguanide: 6.5+')
+		st.text('predicted score with GLP-1R agonist: 6.5+')
+		st.text('predicted score with SGLT2 inhibitor: 6.5+')
+		st.text('predicted score with SGLT2 inhibitor; biguanide: 6.5+')
+		st.text('predicted score with sulfonylurea: 6.5+')
+		st.text('predicted score with thiazolidinedione: 6.5+')
+               
+		st.subheader('Blood pressure')
+		st.text('predicted score with BP of 120/80: 6.5+')
+		
+		st.subheader('Body mass index')
+		st.text('predicted score with BMI of 24: 6.5+')
+		
+		st.subheader('Diet')
+		st.text('predicted score with a diet rated "excellent": 6.5+')
+	if patient=='Patient 2':
+		st.subheader('Antidiabetic medications')
+		st.text('predicted score with insulin: 6.5+')
+		st.text('predicted score with alpha-glucosidase inhibitor: 6.5+')
+		st.text('predicted score with biguanide: 6.5+')
+		st.text('predicted score with dopamine agonist: 6.5+')
+		st.text('predicted score with DPP-4 inhibitor: 6.5+')
+		st.text('predicted score with DPP-4 inhibitor; biguanide: 6.5+')
+		st.text('predicted score with GLP-1R agonist: 6.5+')
+		st.text('predicted score with SGLT2 inhibitor: 6.5+')
+		st.text('predicted score with SGLT2 inhibitor; biguanide: 6.5+')
+		st.text('predicted score with sulfonylurea: 6.5+')
+		st.text('predicted score with thiazolidinedione: 6.5+')
+
+		st.subheader('Blood pressure')
+		st.text('predicted score with BP of 120/80: 5.7-6.4')
+
+		st.subheader('Body mass index')
+		st.text('predicted score with BMI of 24: 6.5+')
+
+		st.subheader('Diet')
+		st.text('predicted score with a diet rated "excellent": 6.5+')
+	if patient=='Patient 3':
+		st.subheader('Antidiabetic medications')
+		st.text('predicted score with insulin: 6.5+')
+		st.text('predicted score with alpha-glucosidase inhibitor: 6.5+')
+		st.text('predicted score with biguanide: 6.5+')
+		st.text('predicted score with dopamine agonist: 6.5+')
+		st.text('predicted score with DPP-4 inhibitor: 6.5+')
+		st.text('predicted score with DPP-4 inhibitor; biguanide: 6.5+')
+		st.text('predicted score with GLP-1R agonist: 6.5+')
+		st.text('predicted score with SGLT2 inhibitor: 6.5+')
+		st.text('predicted score with SGLT2 inhibitor; biguanide: 6.5+')
+		st.text('predicted score with sulfonylurea: 6.5+')
+		st.text('predicted score with thiazolidinedione: 6.5+')
+
+		st.subheader('Blood pressure')
+		st.text('predicted score with BP of 120/80: 6.5+')
+
+		st.subheader('Body mass index')
+		st.text('predicted score with BMI of 24: 6.5+')
+
+		st.subheader('Diet')
+		st.text('predicted score with a diet rated "excellent": 6.5+')
